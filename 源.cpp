@@ -1,68 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-//冒泡排序
-void bubblesort1(int* arr, int n) {
-	if (n < 2) return;
-	int itmp;
-//i是排序趟数计数器
-	for (int i = n-1; i > 0; i--) {
-		for (int j = 0; j < i; j++) {
-			if (arr[j] > arr[j + 1]) {
-				itmp = arr[j + 1];
-				arr[j + 1] = arr[j];
-				arr[j] = itmp;
-			}
+//arr-待排数组首地址，arrtmp-用于排序的临时数组的首地址
+//start-待排区间第一个元素位置，end-待排区间的最后一个元素位置
+void _mergesort(int* arr, int* arrtmp, int start, int end) {
+    //如果区间元素少于2，递归终止
+    if (start >= end) return;
+    int mid = start + (end - start) / 2;//计算排序区间的中间位置
 
-		}
-	}
+    int istart1 = start, iend1 = mid;//左区间的起始位置
+    int istart2 = mid + 1, iend2 = end;//右区间的起始位置
+
+    _mergesort(arr, arrtmp, istart1, iend1);//左区间递归
+    _mergesort(arr, arrtmp, istart2, iend2);//右区间递归
+
+    int ii = start;//arrtmp计数器
+    while (istart1 <= iend1 && istart2 <= iend2)
+        arrtmp[ii++] = arr[istart1] < arr[istart2] ? arr[istart1++] : arr[istart2++];
+    while (istart1 <= iend1)
+        arrtmp[ii++] = arr[istart1++];
+    while (istart2 <= iend2)
+        arrtmp[ii++] = arr[istart2++];
+    memcpy(arr + start, arrtmp + start, (end - start + 1) * sizeof(int));
 }
 
-//排序算法优化
-void bubblesort11(int* arr, int n) {
-	if (n < 2) return;
-	int ifswap;//每趟排序是否交换过元素，0-未交换，1-交换过
-	int itmp;//交换元素时的中间变量
-	//i是排序趟数计数器
-	for (int i = n - 1; i > 0; i--) {
-		ifswap = 0;
-		for (int j = 0; j < i; j++) {
-			if (arr[j] > arr[j + 1]) {
-				itmp = arr[j + 1];
-				arr[j + 1] = arr[j];
-				arr[j] = itmp;
-				ifswap = 1;
-			}
-
-		}
-		if (ifswap == 0) return;
-	}
+void MergeSort(int* arr, unsigned int n) {
+    if (n < 2) return;
+    int *arrtmp=(int*)malloc(n*sizeof(int));
+    _mergesort(arr, arrtmp, 0, n - 1);//调用递归函数进行排序
+    free(arrtmp);
 }
-
-//递归实现冒泡排序
-void bubblesort2(int* arr, unsigned int n) {
-	if (n < 2) return;
-	int tempt;//用来交换两个元素
-	int ifswap;//判断每趟排序是否交换过元素，0-未交换，1-交换过
-	for (int ii = 0; ii < n - 1; ii++) {
-		ifswap = 0;//排序前初始化一下
-		if (arr[ii] > arr[ii + 1]) {
-			tempt = arr[ii + 1];
-			arr[ii + 1] = arr[ii];
-			arr[ii] = tempt;
-			ifswap = 1;//说明已经交换过
-		}
-	}
-	if (ifswap == 0) return;
-	bubblesort2(arr, --n);
-}
-
 
 int main() {
-	int arr[15] = { 44,3,38,5,47,15,36,26,27,2,46,4,19,50,49 };
-	bubblesort2(arr, 15);
-	for (int i = 0; i < 15; i++)
-		printf("%d ", arr[i]);
-	printf("\n");
-	return 0;
-} 
+    int arr[15] = { 44, 3, 38, 5, 47, 15, 36, 26, 27, 2, 46, 4, 19, 50, 49 };
+    MergeSort(arr, 15);
+    printf("Sorted array: ");
+    for (int i = 0; i < 15; ++i) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+    return 0;
+}
