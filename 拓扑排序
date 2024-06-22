@@ -1,0 +1,158 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define MaxVertexNum 10
+
+// 图结构体声明
+typedef struct ArcNode {
+    int adjvex; // 边/弧指向哪个结点
+    struct ArcNode* nextarc;
+    int info;   // 边权值
+} ArcNode;
+
+typedef struct VNode {
+    char data;      // 顶点信息，例如：A,B,C
+    ArcNode* firstarc; // 相连的第一条边
+} VNode, AdjList[MaxVertexNum];
+
+typedef struct {
+    AdjList vertices;
+    int vexnum, arcnum;
+} Graph;
+
+//链栈
+typedef struct Snode {
+    int data;
+    struct Snode* next;
+}Snode, * LiStack;
+
+//初始化
+void InitStack(LiStack& S) {
+    S = NULL;
+}
+
+//栈判空
+bool IsEmpty(LiStack S) {
+    return S == NULL;
+}
+
+//进栈
+bool Push(LiStack& S, int x) {
+    Snode* s = (Snode*)malloc(sizeof(Snode));
+    if (s == NULL) return false;
+    s->data = x;
+    s->next = S;
+    S = s;
+}
+
+//出栈
+bool Pop(LiStack& S, int& x) {
+    if (S == NULL) return false;
+    Snode* p = S;
+    x = p->data;
+    S = p->next;
+    free(p);
+    return true;
+}
+
+
+ArcNode* p;
+int v;
+
+bool TopologicalSort(Graph G) {
+    LiStack S;
+    InitStack(S);
+    int indegree[MaxVertexNum] = { 0 }; // 初始化入度数组
+    int print[MaxVertexNum]; // 用于存储拓扑排序结果
+    int count = 0; // 计数已排序顶点数量
+    int i;
+    // 计算每个顶点的入度
+    for (int i = 0; i < G.vexnum; i++) {
+        for (ArcNode* p = G.vertices[i].firstarc; p; p = p->nextarc) {
+            indegree[p->adjvex]++;
+        }
+    }
+    for (i = 0; 1 < G.vexnum; i++) {
+        if (indegree[i] == 0) {
+            Push(S, i);
+        }
+        while (!IsEmpty(S)) {
+            Pop(S, i);
+            print[count++] = i;
+            for (p = G.vertices[i].firstarc; p; p = p->nextarc) {
+                v = p->adjvex;
+                if (!(--indegree[i])) {
+                    Push(S, v);
+                }
+            }
+        }
+        // 检查是否所有顶点都被排序
+        if (count < G.vexnum) {
+            return false; // 图中有环
+        }
+        else {
+            // 输出拓扑排序结果
+            for (int i = 0; i < count; i++) {
+                printf("%c ", G.vertices[print[i]].data);
+            }
+            printf("\n");
+            return true;
+        }
+    }
+}
+
+int main() {
+    Graph G;
+    G.vexnum = 5;
+    G.arcnum = 5;
+
+    // 初始化顶点
+    for (int i = 0; i < G.vexnum; ++i) {
+        G.vertices[i].data = 'A' + i;
+        G.vertices[i].firstarc = NULL;
+    }
+
+    // 添加边（示例）
+    ArcNode* node01 = (ArcNode*)malloc(sizeof(ArcNode));
+    node01->adjvex = 1;
+    node01->nextarc = NULL;
+    G.vertices[0].firstarc = node01;
+
+    ArcNode* node12 = (ArcNode*)malloc(sizeof(ArcNode));
+    node12->adjvex = 2;
+    node12->nextarc = NULL;
+    G.vertices[1].firstarc = node12;
+
+    ArcNode* node23 = (ArcNode*)malloc(sizeof(ArcNode));
+    node23->adjvex = 3;
+    node23->nextarc = NULL;
+    G.vertices[2].firstarc = node23;
+
+    ArcNode* node34 = (ArcNode*)malloc(sizeof(ArcNode));
+    node34->adjvex = 4;
+    node34->nextarc = NULL;
+    G.vertices[3].firstarc = node34;
+
+    ArcNode* node40 = (ArcNode*)malloc(sizeof(ArcNode));
+    node40->adjvex = 0;
+    node40->nextarc = NULL;
+    G.vertices[4].firstarc = node40;
+
+    // 执行拓扑排序
+    if (TopologicalSort(G)) {
+        printf("Topological Sort succeeded.\n");
+    }
+    else {
+        printf("Topological Sort failed. The graph has a cycle.\n");
+    }
+
+    // 释放动态分配的内存
+    free(node01);
+    free(node12);
+    free(node23);
+    free(node34);
+    free(node40);
+
+    return 0;
+}
